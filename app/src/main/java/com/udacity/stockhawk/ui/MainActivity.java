@@ -1,6 +1,7 @@
 package com.udacity.stockhawk.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -19,14 +20,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
 import com.udacity.stockhawk.sync.QuoteSyncJob;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
@@ -186,7 +185,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             setDisplayModeMenuItemIcon(item);
             adapter.notifyDataSetChanged();
             return true;
+        }else if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 }

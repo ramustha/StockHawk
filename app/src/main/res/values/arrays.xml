@@ -6,4 +6,14 @@
         <item>@string/default_stocks_microsoft</item>
         <item>@string/default_stocks_facebook</item>
     </string-array>
+
+    <string-array name="pref_fonts_options">
+        <item>@string/pref_fonts_label_default</item>
+        <item>@string/pref_fonts_label_arabic</item>
+    </string-array>
+
+    <string-array name="pref_fonts_values">
+        <item>@string/pref_fonts_default</item>
+        <item>@string/pref_fonts_arabic</item>
+    </string-array>
 </resources>

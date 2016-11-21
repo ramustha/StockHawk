@@ -1,6 +1,5 @@
 package com.udacity.stockhawk.ui;
 
-
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
@@ -8,17 +7,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
-
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
 
@@ -67,13 +63,14 @@ class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
         cursor.moveToPosition(position);
 
         String symbolDesc = cursor.getString(Contract.Quote.POSITION_SYMBOL);
-        String priceDesc = dollarFormat.format(cursor.getFloat(Contract.Quote.POSITION_PRICE));
+
+        float rawPrice = cursor.getFloat(Contract.Quote.POSITION_PRICE);
+        String priceDesc = dollarFormat.format(rawPrice);
 
         holder.symbol.setText(symbolDesc);
         holder.symbol.setContentDescription(context.getString(R.string.pref_symbol_key_desc, symbolDesc));
         holder.price.setText(priceDesc);
         holder.price.setContentDescription(context.getString(R.string.pref_price_key_desc, priceDesc));
-
 
         float rawAbsoluteChange = cursor.getFloat(Contract.Quote.POSITION_ABSOLUTE_CHANGE);
         float percentageChange = cursor.getFloat(Contract.Quote.POSITION_PERCENTAGE_CHANGE);

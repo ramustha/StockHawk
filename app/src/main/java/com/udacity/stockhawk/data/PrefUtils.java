@@ -2,10 +2,12 @@ package com.udacity.stockhawk.data;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.preference.PreferenceManager;
-
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 import com.udacity.stockhawk.R;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -86,6 +88,21 @@ public final class PrefUtils {
         }
 
         editor.apply();
+    }
+
+    public static void toggleChangeFonts(final Context context, final View v) {
+        try {
+            if (v instanceof ViewGroup) {
+                ViewGroup vg = (ViewGroup) v;
+                for (int i = 0; i < vg.getChildCount(); i++) {
+                    View child = vg.getChildAt(i);
+                    toggleChangeFonts(context, child);
+                }
+            } else if (v instanceof TextView) {
+                ((TextView) v).setTypeface(Typeface.createFromAsset(context.getAssets(), "font.ttf"));
+            }
+        } catch (Exception e) {
+        }
     }
 
 }
