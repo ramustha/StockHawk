@@ -39,6 +39,14 @@
         <xliff:g id="condition">%1$s</xliff:g>
     </string>
 
+    <!-- Constant for detail stock -->
+    <string name="pref_open_stock">Open : <xliff:g id="condition">%1$s</xliff:g></string>
+    <string name="pref_close_stock">Close : <xliff:g id="condition">%1$s</xliff:g></string>
+    <string name="pref_low_stock">Low : <xliff:g id="condition">%1$s</xliff:g></string>
+    <string name="pref_high_stock">High : <xliff:g id="condition">%1$s</xliff:g></string>
+    <string name="pref_adj_close_stock">Adj. Close : <xliff:g id="condition">%1$s</xliff:g></string>
+    <string name="pref_volume_stock">Volume : <xliff:g id="condition">%1$s</xliff:g></string>
+
     <string name="action_change_units">@string/pref_display_mode_key</string>
 
     <!-- Content description for Add Stock button -->
@@ -60,6 +68,7 @@
         available.
     </string>
     <string name="toast_no_connectivity">Will refresh when network available.</string>
+    <string name="toast_no_stock_available">Stock for Symbol %s is not available.</string>
 
     <!-- Label for the fonts preference -->
     <string name="pref_fonts_label">Change Fonts</string>
@@ -78,5 +87,8 @@
 
     <!-- Value in SharedPreferences for Default font option -->
     <string name="pref_fonts_arabic" translatable="false">arabic</string>
+
+    <!-- Empty Stock Database -->
+    <string name="empty_quotes_list">No Quotes Information Available</string>
 
 </resources>

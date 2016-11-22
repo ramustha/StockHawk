@@ -21,18 +21,39 @@ public class SettingsActivity extends PreferenceActivity
 {
 
   @Override
-  protected void onPostCreate(Bundle savedInstanceState) {
+  protected void onPostCreate(Bundle savedInstanceState)
+  {
     super.onPostCreate(savedInstanceState);
 
-    LinearLayout root = (LinearLayout)findViewById(android.R.id.list).getParent().getParent().getParent();
+    LinearLayout root = (LinearLayout) findViewById(android.R.id.list).getParent().getParent().getParent();
     Toolbar bar = (Toolbar) LayoutInflater.from(this).inflate(R.layout.settings_toolbar, root, false);
     root.addView(bar, 0); // insert at top
-    bar.setNavigationOnClickListener(new View.OnClickListener() {
+    bar.setNavigationOnClickListener(new View.OnClickListener()
+    {
       @Override
-      public void onClick(View v) {
+      public void onClick(View v)
+      {
         finish();
       }
     });
+  }
+
+  // Registers a shared preference change listener that gets notified when preferences change
+  @Override
+  protected void onResume()
+  {
+    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+    sp.registerOnSharedPreferenceChangeListener(this);
+    super.onResume();
+  }
+
+  // Unregisters a shared preference change listener
+  @Override
+  protected void onPause()
+  {
+    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+    sp.unregisterOnSharedPreferenceChangeListener(this);
+    super.onPause();
   }
 
   @Override
@@ -47,26 +68,10 @@ public class SettingsActivity extends PreferenceActivity
     bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_fonts_key)));
   }
 
-  // Registers a shared preference change listener that gets notified when preferences change
-  @Override
-  protected void onResume() {
-    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-    sp.registerOnSharedPreferenceChangeListener(this);
-    super.onResume();
-  }
-
-  // Unregisters a shared preference change listener
-  @Override
-  protected void onPause() {
-    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-    sp.unregisterOnSharedPreferenceChangeListener(this);
-    super.onPause();
-  }
-
   @Override
   public void onSharedPreferenceChanged(SharedPreferences aSharedPreferences, String akey)
   {
-    if ( akey.equals(getString(R.string.pref_fonts_key)) ) {
+    if (akey.equals(getString(R.string.pref_fonts_key))) {
       // fonts have changed. update fonts accordingly
       //getContentResolver().notifyChange(WeatherContract.WeatherEntry.CONTENT_URI, null);
     }
@@ -80,11 +85,11 @@ public class SettingsActivity extends PreferenceActivity
   }
 
   /**
-   * Attaches a listener so the summary is always updated with the preference value.
-   * Also fires the listener once, to initialize the summary (so it shows up before the value
-   * is changed.)
+   * Attaches a listener so the summary is always updated with the preference value. Also fires the
+   * listener once, to initialize the summary (so it shows up before the value is changed.)
    */
-  private void bindPreferenceSummaryToValue(Preference preference) {
+  private void bindPreferenceSummaryToValue(Preference preference)
+  {
     // Set the listener to watch for value changes.
     preference.setOnPreferenceChangeListener(this);
 
@@ -95,7 +100,8 @@ public class SettingsActivity extends PreferenceActivity
             .getString(preference.getKey(), ""));
   }
 
-  private void setPreferenceSummary(Preference preference, Object value) {
+  private void setPreferenceSummary(Preference preference, Object value)
+  {
     String stringValue = value.toString();
     String key = preference.getKey();
 

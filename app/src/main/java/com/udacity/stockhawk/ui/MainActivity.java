@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.LoaderManager;
@@ -29,167 +30,185 @@ import com.udacity.stockhawk.sync.QuoteSyncJob;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
-        SwipeRefreshLayout.OnRefreshListener,
-        StockAdapter.StockAdapterOnClickHandler {
+    SwipeRefreshLayout.OnRefreshListener,
+    StockAdapter.StockAdapterOnClickHandler
+{
 
-    private static final int STOCK_LOADER = 0;
-    @BindView(R.id.recycler_view)
-    RecyclerView recyclerView;
-    @BindView(R.id.fab)
-    FloatingActionButton fab;
-    @BindView(R.id.swipe_refresh)
-    SwipeRefreshLayout swipeRefreshLayout;
-    @BindView(R.id.error)
-    TextView error;
-    private StockAdapter adapter;
+  private static final int STOCK_LOADER = 0;
+  @BindView(R.id.recycler_view)
+  RecyclerView recyclerView;
+  @BindView(R.id.fab)
+  FloatingActionButton fab;
+  @BindView(R.id.swipe_refresh)
+  SwipeRefreshLayout swipeRefreshLayout;
+  @BindView(R.id.error)
+  TextView error;
+  private StockAdapter adapter;
 
-    @Override
-    public void onClick(String symbol) {
-        Timber.d("Symbol clicked: %s", symbol);
+  @Override
+  public void onClick(String symbol)
+  {
+    Uri contentUri = Contract.History.makeUriForSymbol(symbol);
+    Timber.d("contentUri: %s", contentUri);
+    Intent intent = new Intent(this, DetailActivity.class)
+        .setData(contentUri).putExtra(DetailActivity.EXTRA, symbol);
+    startActivity(intent);
+  }
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState)
+  {
+    super.onCreate(savedInstanceState);
+
+    setContentView(R.layout.activity_main);
+    ButterKnife.bind(this);
+
+    adapter = new StockAdapter(this, this);
+    recyclerView.setAdapter(adapter);
+    recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+    swipeRefreshLayout.setOnRefreshListener(this);
+    swipeRefreshLayout.setRefreshing(true);
+    onRefresh();
+    QuoteSyncJob.initialize(this);
+    getSupportLoaderManager().initLoader(STOCK_LOADER, null, this);
+
+    new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT)
+    {
+      @Override
+      public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target)
+      {
+        return false;
+      }
+
+      @Override
+      public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction)
+      {
+        String symbol = adapter.getSymbolAtPosition(viewHolder.getAdapterPosition());
+        PrefUtils.removeStock(MainActivity.this, symbol);
+        getContentResolver().delete(Contract.Quote.makeUriForStock(symbol), null, null);
+      }
+    }).attachToRecyclerView(recyclerView);
+  }
+
+  private boolean networkUp()
+  {
+    ConnectivityManager cm =
+        (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+    NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+    return networkInfo != null && networkInfo.isConnectedOrConnecting();
+  }
+
+  @Override
+  public void onRefresh()
+  {
+
+    QuoteSyncJob.syncImmediately(this);
+
+    if (!networkUp() && adapter.getItemCount() == 0) {
+      swipeRefreshLayout.setRefreshing(false);
+      error.setText(getString(R.string.error_no_network));
+      error.setVisibility(View.VISIBLE);
+    } else if (!networkUp()) {
+      swipeRefreshLayout.setRefreshing(false);
+      Toast.makeText(this, R.string.toast_no_connectivity, Toast.LENGTH_LONG).show();
+    } else if (PrefUtils.getStocks(this).size() == 0) {
+      Timber.d("WHYAREWEHERE");
+      swipeRefreshLayout.setRefreshing(false);
+      error.setText(getString(R.string.error_no_stocks));
+      error.setVisibility(View.VISIBLE);
+    } else {
+      error.setVisibility(View.GONE);
     }
+  }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+  public void button(View view)
+  {
+    new AddStockDialog().show(getFragmentManager(), "StockDialogFragment");
+  }
 
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+  void addStock(String symbol)
+  {
+    if (symbol != null && !symbol.isEmpty()) {
 
-        adapter = new StockAdapter(this, this);
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        swipeRefreshLayout.setOnRefreshListener(this);
+      if (networkUp()) {
         swipeRefreshLayout.setRefreshing(true);
-        onRefresh();
+      } else {
+        String message = getString(R.string.toast_stock_added_no_connectivity, symbol);
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+      }
 
-        QuoteSyncJob.initialize(this);
-        getSupportLoaderManager().initLoader(STOCK_LOADER, null, this);
+      PrefUtils.addStock(this, symbol);
+      QuoteSyncJob.syncImmediately(this);
+      //String message = getString(R.string.toast_no_stock_available, symbol);
+      //Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+      //swipeRefreshLayout.setRefreshing(false);
+    }
+  }
 
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-            @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                return false;
-            }
+  @Override
+  public Loader<Cursor> onCreateLoader(int id, Bundle args)
+  {
+    return new CursorLoader(this,
+        Contract.Quote.uri,
+        Contract.Quote.QUOTE_COLUMNS,
+        null, null, Contract.Quote.COLUMN_SYMBOL);
+  }
 
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                String symbol = adapter.getSymbolAtPosition(viewHolder.getAdapterPosition());
-                PrefUtils.removeStock(MainActivity.this, symbol);
-                getContentResolver().delete(Contract.Quote.makeUriForStock(symbol), null, null);
-            }
-        }).attachToRecyclerView(recyclerView);
+  @Override
+  public void onLoadFinished(Loader<Cursor> loader, Cursor data)
+  {
+    swipeRefreshLayout.setRefreshing(false);
+    adapter.setCursor(data);
 
+    if (data.getCount() != 0) {
+      error.setVisibility(View.GONE);
+    }
+  }
 
+  @Override
+  public void onLoaderReset(Loader<Cursor> loader)
+  {
+    swipeRefreshLayout.setRefreshing(false);
+    adapter.setCursor(null);
+  }
+
+  private void setDisplayModeMenuItemIcon(MenuItem item)
+  {
+    if (PrefUtils.getDisplayMode(this)
+        .equals(getString(R.string.pref_display_mode_absolute_key))) {
+      item.setIcon(R.drawable.ic_percentage);
+      item.setTitle(R.string.pref_display_mode_percentage_key_desc);
+    } else {
+      item.setIcon(R.drawable.ic_dollar);
+      item.setTitle(R.string.pref_display_mode_absolute_key_desc);
+    }
+  }
+
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu)
+  {
+    getMenuInflater().inflate(R.menu.main_activity_settings, menu);
+    MenuItem item = menu.findItem(R.id.action_change_units);
+    setDisplayModeMenuItemIcon(item);
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item)
+  {
+    int id = item.getItemId();
+
+    if (id == R.id.action_change_units) {
+      PrefUtils.toggleDisplayMode(this);
+      setDisplayModeMenuItemIcon(item);
+      adapter.notifyDataSetChanged();
+      return true;
+    } else if (id == R.id.action_settings) {
+      startActivity(new Intent(this, SettingsActivity.class));
+      return true;
     }
 
-    private boolean networkUp() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnectedOrConnecting();
-    }
-
-    @Override
-    public void onRefresh() {
-
-        QuoteSyncJob.syncImmediately(this);
-
-        if (!networkUp() && adapter.getItemCount() == 0) {
-            swipeRefreshLayout.setRefreshing(false);
-            error.setText(getString(R.string.error_no_network));
-            error.setVisibility(View.VISIBLE);
-        } else if (!networkUp()) {
-            swipeRefreshLayout.setRefreshing(false);
-            Toast.makeText(this, R.string.toast_no_connectivity, Toast.LENGTH_LONG).show();
-        } else if (PrefUtils.getStocks(this).size() == 0) {
-            Timber.d("WHYAREWEHERE");
-            swipeRefreshLayout.setRefreshing(false);
-            error.setText(getString(R.string.error_no_stocks));
-            error.setVisibility(View.VISIBLE);
-        } else {
-            error.setVisibility(View.GONE);
-        }
-    }
-
-    public void button(View view) {
-        new AddStockDialog().show(getFragmentManager(), "StockDialogFragment");
-    }
-
-    void addStock(String symbol) {
-        if (symbol != null && !symbol.isEmpty()) {
-
-            if (networkUp()) {
-                swipeRefreshLayout.setRefreshing(true);
-            } else {
-                String message = getString(R.string.toast_stock_added_no_connectivity, symbol);
-                Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-            }
-
-            PrefUtils.addStock(this, symbol);
-            QuoteSyncJob.syncImmediately(this);
-        }
-    }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(this,
-                Contract.Quote.uri,
-                Contract.Quote.QUOTE_COLUMNS,
-                null, null, Contract.Quote.COLUMN_SYMBOL);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        swipeRefreshLayout.setRefreshing(false);
-
-        if (data.getCount() != 0) {
-            error.setVisibility(View.GONE);
-        }
-        adapter.setCursor(data);
-    }
-
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        swipeRefreshLayout.setRefreshing(false);
-        adapter.setCursor(null);
-    }
-
-
-    private void setDisplayModeMenuItemIcon(MenuItem item) {
-        if (PrefUtils.getDisplayMode(this)
-                .equals(getString(R.string.pref_display_mode_absolute_key))) {
-            item.setIcon(R.drawable.ic_percentage);
-            item.setTitle(R.string.pref_display_mode_percentage_key_desc);
-        } else {
-            item.setIcon(R.drawable.ic_dollar);
-            item.setTitle(R.string.pref_display_mode_absolute_key_desc);
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_activity_settings, menu);
-        MenuItem item = menu.findItem(R.id.action_change_units);
-        setDisplayModeMenuItemIcon(item);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_change_units) {
-            PrefUtils.toggleDisplayMode(this);
-            setDisplayModeMenuItemIcon(item);
-            adapter.notifyDataSetChanged();
-            return true;
-        }else if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
+    return super.onOptionsItemSelected(item);
+  }
 }
