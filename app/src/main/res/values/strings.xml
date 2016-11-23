@@ -96,4 +96,7 @@
     <!-- Empty Stock Database -->
     <string name="empty_quotes_list">No Quotes Information Available</string>
 
+    <!-- Strings related to Widgets -->
+    <string name="title_widget_today">Current Stock</string>
+    <string name="title_widget_detail">Detail Stock</string>
 </resources>

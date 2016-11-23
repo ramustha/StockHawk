@@ -25,9 +25,9 @@
   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginTop="@dimen/abc_list_item_padding_horizontal_material"
-      android:layout_marginStart="@dimen/abc_list_item_padding_horizontal_material"
-      android:layout_marginEnd="@dimen/abc_list_item_padding_horizontal_material"
+      android:layout_marginTop="@dimen/list_detail_vertical_margin"
+      android:layout_marginStart="@dimen/list_detail_vertical_margin"
+      android:layout_marginEnd="@dimen/list_detail_vertical_margin"
       android:orientation="vertical">
 
     <TextView
@@ -40,10 +40,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
+        android:gravity="center"
         android:minHeight="?android:attr/listPreferredItemHeight"
-        android:paddingLeft="@dimen/abc_list_item_padding_horizontal_material"
-        android:paddingRight="@dimen/abc_list_item_padding_horizontal_material"
         android:orientation="horizontal">
 
       <LinearLayout
@@ -107,8 +105,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Volume"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-            android:textColor="@color/colorPrimary"/>
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
       </LinearLayout>
 
     </LinearLayout>
