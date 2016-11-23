@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.LoaderManager;
@@ -27,7 +28,11 @@ import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
 import com.udacity.stockhawk.sync.QuoteSyncJob;
+import java.io.IOException;
 import timber.log.Timber;
+import yahoofinance.Stock;
+import yahoofinance.YahooFinance;
+import yahoofinance.quotes.stock.StockQuote;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
     SwipeRefreshLayout.OnRefreshListener,
@@ -138,11 +143,46 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
       }
 
-      PrefUtils.addStock(this, symbol);
-      QuoteSyncJob.syncImmediately(this);
-      //String message = getString(R.string.toast_no_stock_available, symbol);
-      //Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-      //swipeRefreshLayout.setRefreshing(false);
+      new AsyncTask<String, Void, String>(){
+
+        private boolean isCorrectSymbol;
+
+        @Override
+        protected String doInBackground(String... aSymbols)
+        {
+          String symbol = aSymbols[0];
+          try {
+            Stock stock = YahooFinance.get(symbol);
+            StockQuote quote = stock.getQuote();
+            if (quote.getPrice() != null && quote.getChange() != null) {
+              isCorrectSymbol = true;
+            }else {
+              isCorrectSymbol = false;
+            }
+
+          } catch (IOException aE) {
+            Timber.e(aE, "Error fetching stock quotes");
+          }
+          return symbol;
+        }
+
+        @Override
+        protected void onPostExecute(String aSymbol)
+        {
+          super.onPostExecute(aSymbol);
+
+          if (isCorrectSymbol) {
+            PrefUtils.addStock(MainActivity.this, aSymbol);
+            QuoteSyncJob.syncImmediately(MainActivity.this);
+          }else {
+            String message = getString(R.string.toast_no_stock_available, aSymbol);
+            Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+            swipeRefreshLayout.setRefreshing(false);
+          }
+
+        }
+      }.execute(symbol);
+
     }
   }
 
