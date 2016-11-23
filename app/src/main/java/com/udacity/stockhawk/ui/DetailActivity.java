@@ -46,6 +46,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     mUri = getIntent().getData();
     mSymbol = getIntent().getStringExtra(EXTRA);
     symbol.setText(mSymbol);
+    symbol.setContentDescription(getString(R.string.pref_symbol_stock_desc, mSymbol));
 
     getSupportLoaderManager().initLoader(DETAIL_LOADER, null, this);
 

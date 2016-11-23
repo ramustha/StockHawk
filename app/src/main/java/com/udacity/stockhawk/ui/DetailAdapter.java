@@ -93,6 +93,15 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
     holder.high.setText(context.getString(R.string.pref_high_stock, highDesc));
     holder.adjClose.setText(context.getString(R.string.pref_adj_close_stock, adjCloseDesc));
     holder.volume.setText(context.getString(R.string.pref_volume_stock, volumeDesc));
+
+    //content description
+    holder.date.setContentDescription(context.getString(R.string.pref_date_desc, dateDecs));
+    holder.open.setContentDescription(context.getString(R.string.pref_open_stock, openDesc));
+    holder.close.setContentDescription(context.getString(R.string.pref_close_stock, closeDesc));
+    holder.low.setContentDescription(context.getString(R.string.pref_low_stock, lowDesc));
+    holder.high.setContentDescription(context.getString(R.string.pref_high_stock, highDesc));
+    holder.adjClose.setContentDescription(context.getString(R.string.pref_adjs_close_stock, adjCloseDesc));
+    holder.volume.setContentDescription(context.getString(R.string.pref_volume_stock, volumeDesc));
   }
 
   @Override
@@ -112,7 +121,6 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
 
   class DetailViewHolder extends RecyclerView.ViewHolder
   {
-
     @BindView(R.id.list_item_date_textview)
     TextView date;
     @BindView(R.id.list_item_open_textview)
