@@ -74,6 +74,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     swipeRefreshLayout.setOnRefreshListener(this);
     swipeRefreshLayout.setRefreshing(true);
+
+    networkCondition();
     onRefresh();
     QuoteSyncJob.initialize(this);
     getSupportLoaderManager().initLoader(STOCK_LOADER, null, this);
@@ -92,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         String symbol = adapter.getSymbolAtPosition(viewHolder.getAdapterPosition());
         PrefUtils.removeStock(MainActivity.this, symbol);
         getContentResolver().delete(Contract.Quote.makeUriForStock(symbol), null, null);
+        onRefresh();
       }
     }).attachToRecyclerView(recyclerView);
   }
@@ -107,9 +110,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
   @Override
   public void onRefresh()
   {
-
     QuoteSyncJob.syncImmediately(this);
+    networkCondition();
+  }
 
+  private void networkCondition()
+  {
     if (!networkUp() && adapter.getItemCount() == 0) {
       swipeRefreshLayout.setRefreshing(false);
       error.setText(getString(R.string.error_no_network));
@@ -243,9 +249,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
       PrefUtils.toggleDisplayMode(this);
       setDisplayModeMenuItemIcon(item);
       adapter.notifyDataSetChanged();
-      return true;
-    } else if (id == R.id.action_settings) {
-      startActivity(new Intent(this, SettingsActivity.class));
       return true;
     }
 

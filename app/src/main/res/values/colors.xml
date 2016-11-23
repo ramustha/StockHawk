@@ -10,4 +10,7 @@
     <color name="material_red_700">#D50000</color>
     <color name="material_green_700">#00C853</color>
 
+    <!-- the activated state color -->
+    <color name="activated">@color/material_blue_700</color>
+
 </resources>

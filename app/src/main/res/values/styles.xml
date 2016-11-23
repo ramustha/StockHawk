@@ -12,7 +12,9 @@
 
     <style name="AppTheme.Main" parent="@style/AppTheme"/>
 
-    <style name="AppTheme.Details" parent="@style/AppTheme"/>
+    <style name="AppTheme.Details" parent="@style/AppTheme">
+
+    </style>
 
     <style name="PercentChangeTextStyle">
         <item name="android:textSize">20sp</item>
@@ -27,5 +29,12 @@
     <style name="StockSymbolTextStyle">
         <item name="android:textSize">25sp</item>
         <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="StockHistoryTextStyle">
+        <item name="android:textSize">25sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:background">@color/colorPrimary</item>
     </style>
 </resources>
