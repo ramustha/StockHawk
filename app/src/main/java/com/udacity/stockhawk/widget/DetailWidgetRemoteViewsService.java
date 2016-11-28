@@ -37,16 +37,19 @@ public class DetailWidgetRemoteViewsService extends RemoteViewsService
   @Override
   public RemoteViewsFactory onGetViewFactory(Intent aIntent)
   {
-    return new RemoteViewsFactory() {
+    return new RemoteViewsFactory()
+    {
       private Cursor data = null;
 
       @Override
-      public void onCreate() {
+      public void onCreate()
+      {
         // Nothing to do
       }
 
       @Override
-      public void onDataSetChanged() {
+      public void onDataSetChanged()
+      {
         if (data != null) {
           data.close();
         }
@@ -61,7 +64,8 @@ public class DetailWidgetRemoteViewsService extends RemoteViewsService
       }
 
       @Override
-      public void onDestroy() {
+      public void onDestroy()
+      {
         if (data != null) {
           data.close();
           data = null;
@@ -69,12 +73,14 @@ public class DetailWidgetRemoteViewsService extends RemoteViewsService
       }
 
       @Override
-      public int getCount() {
+      public int getCount()
+      {
         return data == null ? 0 : data.getCount();
       }
 
       @Override
-      public RemoteViews getViewAt(int position) {
+      public RemoteViews getViewAt(int position)
+      {
         if (position == AdapterView.INVALID_POSITION ||
             data == null || !data.moveToPosition(position)) {
           return null;
@@ -85,6 +91,7 @@ public class DetailWidgetRemoteViewsService extends RemoteViewsService
         String symbol = data.getString(Contract.Quote.POSITION_SYMBOL);
         float rawPrice = data.getFloat(Contract.Quote.POSITION_PRICE);
         float percentageChange = data.getFloat(Contract.Quote.POSITION_PERCENTAGE_CHANGE);
+        float rawAbsoluteChange = data.getFloat(Contract.Quote.POSITION_ABSOLUTE_CHANGE);
 
         String percentage = percentageFormat.format(percentageChange / 100);
         String price = dollarFormat.format(rawPrice);
@@ -92,6 +99,12 @@ public class DetailWidgetRemoteViewsService extends RemoteViewsService
         views.setTextViewText(R.id.symbol, symbol);
         views.setTextViewText(R.id.price, price);
         views.setTextViewText(R.id.change, percentage);
+
+        if (rawAbsoluteChange > 0) {
+          views.setInt(R.id.change, "setBackgroundResource", R.drawable.percent_change_pill_green);
+        } else {
+          views.setInt(R.id.change, "setBackgroundResource", R.drawable.percent_change_pill_red);
+        }
 
         final Intent fillInIntent = new Intent();
 
@@ -103,24 +116,27 @@ public class DetailWidgetRemoteViewsService extends RemoteViewsService
       }
 
       @Override
-      public RemoteViews getLoadingView() {
+      public RemoteViews getLoadingView()
+      {
         return new RemoteViews(getPackageName(), R.layout.widget_detail_list_item);
       }
 
       @Override
-      public int getViewTypeCount() {
+      public int getViewTypeCount()
+      {
         return 1;
       }
 
       @Override
-      public long getItemId(int position) {
-        if (data.moveToPosition(position))
-          return data.getLong(Contract.Quote.POSITION_ID);
+      public long getItemId(int position)
+      {
+        if (data.moveToPosition(position)) { return data.getLong(Contract.Quote.POSITION_ID); }
         return position;
       }
 
       @Override
-      public boolean hasStableIds() {
+      public boolean hasStableIds()
+      {
         return true;
       }
     };
